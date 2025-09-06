@@ -26,16 +26,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class BlueprintsServices {
 
-    private final BlueprintsPersistence bpp;
-
-    @Qualifier("subsamplingFilter")
-    private final BlueprintFilter filter;
+    @Autowired
+    BlueprintsPersistence bpp;
 
     @Autowired
-    public BlueprintsServices(BlueprintsPersistence bpp, @Qualifier("subsamplingFilter") BlueprintFilter filter) {
-        this.bpp = bpp;
-        this.filter = filter;
-    }
+    @Qualifier("subsamplingFilter")
+    BlueprintFilter filter;
 
     public void addNewBlueprint(Blueprint bp) {
         try {

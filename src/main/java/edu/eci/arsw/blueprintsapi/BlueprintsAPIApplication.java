@@ -3,19 +3,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-//import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Configuration;
 
 import edu.eci.arsw.blueprints.model.Blueprint;
 import edu.eci.arsw.blueprints.model.Point;
 import edu.eci.arsw.blueprints.services.BlueprintsServices;
 
 @SpringBootApplication
+@Configuration
 @ComponentScan(basePackages = {"edu.eci.arsw.blueprints"})
 public class BlueprintsAPIApplication {
     public static void main(String[] args) {
         org.springframework.boot.SpringApplication.run(BlueprintsAPIApplication.class, args);
     }
-@Bean
+/*@Bean
     public CommandLineRunner loadData(BlueprintsServices service) {
         return (args) -> {
             //Planos básicos
@@ -70,5 +71,5 @@ public class BlueprintsAPIApplication {
             sb.setLength(sb.length() - 1);
         }
         return sb.toString();
-    }
+    }*/
 }
