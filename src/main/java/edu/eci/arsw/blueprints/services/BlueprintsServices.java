@@ -9,6 +9,7 @@ import edu.eci.arsw.blueprints.filters.BlueprintFilter;
 import edu.eci.arsw.blueprints.model.Blueprint;
 import edu.eci.arsw.blueprints.model.Point;
 import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
+import edu.eci.arsw.blueprints.persistence.BlueprintPersistenceException;
 import edu.eci.arsw.blueprints.persistence.BlueprintsPersistence;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -30,18 +31,15 @@ public class BlueprintsServices {
     BlueprintsPersistence bpp;
 
     @Autowired
-    @Qualifier("subsamplingFilter")
+    @Qualifier("redundancyFilter") // redundancyFilter ó subsamplingFilter
     BlueprintFilter filter;
 
-    public void addNewBlueprint(Blueprint bp) {
-        try {
-            bpp.saveBlueprint(bp);
-        } catch (edu.eci.arsw.blueprints.persistence.BlueprintPersistenceException e) {
-            throw new RuntimeException("Error saving blueprint", e);
-        }
+    public void addNewBlueprint(Blueprint bp) throws BlueprintPersistenceException {
+        bpp.saveBlueprint(bp);
+
     }
     
-    public Set<Blueprint> getAllBlueprints(){
+    public Set<Blueprint> getAllBlueprints() throws BlueprintPersistenceException {
         return bpp.getAllBlueprints().stream()
                 .map(filter::applyFilter)
                 .collect(Collectors.toSet());
@@ -54,9 +52,15 @@ public class BlueprintsServices {
      * @return the blueprint of the given name created by the given author
      * @throws BlueprintNotFoundException if there is no such blueprint
      */
-    public Blueprint getBlueprint(String author,String name) throws BlueprintNotFoundException{
-        return filter.applyFilter(bpp.getBlueprint(author, name));
-    }
+    public Blueprint getBlueprint(String author,String name) throws BlueprintNotFoundException, BlueprintPersistenceException{
+        Blueprint bp = bpp.getBlueprint(author, name);
+
+        if (bp == null) {
+            throw new BlueprintNotFoundException("Blueprint not found: " + author + " - " + name);
+        }
+
+        return filter.applyFilter(bp);
+    }   
     
     /**
      * 
@@ -64,10 +68,13 @@ public class BlueprintsServices {
      * @return all the blueprints of the given author
      * @throws BlueprintNotFoundException if the given author doesn't exist
      */
-    public Set<Blueprint> getBlueprintsByAuthor(String author) throws BlueprintNotFoundException{
+    public Set<Blueprint> getBlueprintsByAuthor(String author) throws BlueprintNotFoundException, BlueprintPersistenceException{
         return bpp.getBlueprintsByAuthor(author).stream()
                 .map(filter::applyFilter)
                 .collect(Collectors.toSet());
     }
-    
+
+    public void updateBlueprint(String author, String name, Blueprint updatedBp) throws BlueprintNotFoundException, BlueprintPersistenceException {
+        bpp.updateBlueprint(author, name, updatedBp);
+    }
 }

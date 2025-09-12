@@ -7,6 +7,7 @@ package edu.eci.arsw.blueprints.controllers;
 
 import edu.eci.arsw.blueprints.model.Blueprint;
 import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
+import edu.eci.arsw.blueprints.persistence.BlueprintPersistenceException;
 import edu.eci.arsw.blueprints.services.BlueprintsServices;
 import java.util.Set;
 import java.util.logging.Level;
@@ -34,8 +35,8 @@ public class BlueprintAPIController {
     public ResponseEntity<?> getAllBlueprints() {
         try {
             Set<Blueprint> all = blueprintServices.getAllBlueprints();
-            return new ResponseEntity<>(all, HttpStatus.OK);
-        } catch (Exception ex) {
+            return new ResponseEntity<>(all, HttpStatus.ACCEPTED);
+        } catch (BlueprintPersistenceException ex) {
             logger.log(Level.SEVERE, null, ex);
             return new ResponseEntity<>("Error obteniendo blueprints", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -45,11 +46,11 @@ public class BlueprintAPIController {
     public ResponseEntity<?> getBlueprintsByAuthor(@PathVariable("author") String author) {
         try {
             Set<Blueprint> bps = blueprintServices.getBlueprintsByAuthor(author);
-            return new ResponseEntity<>(bps, HttpStatus.OK);
+            return new ResponseEntity<>(bps, HttpStatus.ACCEPTED);
         } catch (BlueprintNotFoundException ex) {
             logger.log(Level.WARNING, null, ex);
             return new ResponseEntity<>("Author not found: " + author, HttpStatus.NOT_FOUND);
-        } catch (Exception ex) {
+        } catch (BlueprintPersistenceException ex) {
             logger.log(Level.SEVERE, null, ex);
             return new ResponseEntity<>("Error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -60,14 +61,43 @@ public class BlueprintAPIController {
                                                         @PathVariable("bpname") String bpname) {
         try {
             Blueprint bp = blueprintServices.getBlueprint(author, bpname);
-            return new ResponseEntity<>(bp, HttpStatus.OK);
+            return new ResponseEntity<>(bp, HttpStatus.ACCEPTED);
         } catch (BlueprintNotFoundException ex) {
             logger.log(Level.WARNING, null, ex);
             return new ResponseEntity<>("Blueprint not found: " + author + " - " + bpname, HttpStatus.NOT_FOUND);
-        } catch (Exception ex) {
+        } catch (BlueprintPersistenceException ex) {
             logger.log(Level.SEVERE, null, ex);
             return new ResponseEntity<>("Error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping
+    public ResponseEntity<?> addNewBlueprint(@RequestBody Blueprint bp) {
+        try {
+            blueprintServices.addNewBlueprint(bp);
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        } catch (BlueprintPersistenceException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("Error registrando el plano", HttpStatus.FORBIDDEN);
+        }
+    }
+
+    @PutMapping("/{author}/{bpname}")
+    public ResponseEntity<?> updateBlueprint(@PathVariable("author") String author,
+                                            @PathVariable("bpname") String bpname,
+                                            @RequestBody Blueprint updatedBp) {
+        try {
+            blueprintServices.updateBlueprint(author, bpname, updatedBp);
+            return new ResponseEntity<>(HttpStatus.ACCEPTED); 
+        } catch (BlueprintNotFoundException ex) {
+            logger.log(Level.WARNING, null, ex);
+            return new ResponseEntity<>("Blueprint not found", HttpStatus.NOT_FOUND);
+        } catch (BlueprintPersistenceException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("Error actualizando el plano", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 }
 

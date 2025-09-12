@@ -1,0 +1,19 @@
+Análisis de concurrencia
+1. Condiciones de carrera detectadas:
+   - Uso de HashMap en InMemoryBlueprintPersistence (no es thread-safe).
+   - Método saveBlueprint realiza "verificación y posterior inserción" de forma no atómica.
+   - Método updateBlueprint permite que múltiples hilos modifiquen simultáneamente un mismo plano.
+   - Lecturas concurrentes combinadas con escrituras podrían lanzar ConcurrentModificationException.
+
+2. Regiones críticas:
+   - Inserción de nuevos planos.
+   - Actualización de planos existentes.
+   - Iteraciones sobre la colección mientras se realizan modificaciones.
+
+3. Solución aplicada:
+   - Se reemplazó HashMap por ConcurrentHashMap, el cual soporta concurrencia eficiente sin necesidad de bloqueos explícitos.
+   - Se reemplazó la inserción condicional en saveBlueprint por la operación atómica putIfAbsent().
+   - Se implementaron actualizaciones mediante computeIfPresent(), garantizando atomicidad en las modificaciones.
+   - Estas soluciones evitan bloqueos globales (synchronized), lo cual preserva el rendimiento de la API bajo concurrencia.
+
+Con estas modificaciones, el componente BlueprintsRESTAPI puede atender múltiples peticiones concurrentes de forma eficiente.

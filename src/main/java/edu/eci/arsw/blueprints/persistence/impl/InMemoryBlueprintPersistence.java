@@ -11,10 +11,10 @@ import edu.eci.arsw.blueprints.model.Point;
 import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
 import edu.eci.arsw.blueprints.persistence.BlueprintPersistenceException;
 import edu.eci.arsw.blueprints.persistence.BlueprintsPersistence;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
 
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class InMemoryBlueprintPersistence implements BlueprintsPersistence{
 
-    private final Map<Tuple<String,String>,Blueprint> blueprints=new HashMap<>();
+    private final ConcurrentHashMap<Tuple<String,String>,Blueprint> blueprints=new ConcurrentHashMap<>();
 
     public InMemoryBlueprintPersistence() {
         //load stub data
@@ -56,8 +56,8 @@ public class InMemoryBlueprintPersistence implements BlueprintsPersistence{
 
     @Override
     public void saveBlueprint(Blueprint bp) throws BlueprintPersistenceException {
-        if (blueprints.containsKey(new Tuple<>(bp.getAuthor(),bp.getName()))){
-            throw new BlueprintPersistenceException("The given blueprint already exists: "+bp);
+        if (blueprints.putIfAbsent(new Tuple<>(bp.getAuthor(),bp.getName()), bp) != null){
+            throw new BlueprintPersistenceException("El blueprint ya existe: "+bp);
         }
         else{
             blueprints.put(new Tuple<>(bp.getAuthor(),bp.getName()), bp);
@@ -87,5 +87,18 @@ public class InMemoryBlueprintPersistence implements BlueprintsPersistence{
         }
         return result;
     }    
+
+    @Override
+    public void updateBlueprint(String author, String name, Blueprint updatedBp) throws BlueprintNotFoundException, BlueprintPersistenceException {
+        Tuple<String, String> key = new Tuple<>(author, name);
+        Blueprint result = blueprints.computeIfPresent(key, (k, existing) -> {
+            existing.setPoints(updatedBp.getPoints());
+            return existing; 
+        });
+
+        if (result == null) {
+            throw new BlueprintNotFoundException("No se encontró el plano para actualizar");
+        }
+    }
     
 }

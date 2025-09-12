@@ -10,11 +10,12 @@ import java.util.Objects;
 public class Blueprint {
 
     private String author=null;
+
+    private String name=null;
     
     private List<Point> points=null;
     
-    private String name=null;
-            
+          
     public Blueprint(String author,String name,Point[] pnts){
         this.author=author;
         this.name=name;
@@ -33,12 +34,24 @@ public class Blueprint {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getAuthor() {
         return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
     }
     
     public List<Point> getPoints() {
         return points;
+    }
+
+    public void setPoints(List<Point> points) {
+        this.points = points;
     }
     
     public void addPoint(Point p){
